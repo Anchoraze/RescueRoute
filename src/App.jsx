@@ -24,8 +24,8 @@ export default function App() {
 
   // ── Map interaction state ─────────────────────────────────
   const [activeTool, setActiveTool]   = useState('none');
-  const [startNodeId, setStartNodeId] = useState(null);
-  const [endNodeId, setEndNodeId]     = useState(null);
+  const [startNode, setStartNode] = useState(null);
+  const [endNode, setEndNode]     = useState(null);
   const [placingMode, setPlacingMode] = useState('loading'); // loading|error|start|end|done
 
   // ── Clock ─────────────────────────────────────────────────
@@ -48,7 +48,9 @@ export default function App() {
   const handleNodeClick = useCallback((lat, lon) => {
     if (loadState !== 'loaded') return;
 
-    const nearest = snapToNearest(lat, lon);
+    const nearest = snapToNearest(lat, lon,
+      (placingMode === 'end') ? 'end' : 'start'
+    );
     if (!nearest) return;
 
     // Obstacle tools
@@ -71,7 +73,7 @@ export default function App() {
 
     // Place START
     if (placingMode === 'start' || (placingMode === 'done' && activeTool === 'none')) {
-      setStartNodeId(String(nearest.id));
+      setStartNode(nearest);
       mapRef.current?.placeStartMarker(nearest.lat, nearest.lon, 'Rescue Team');
       setPlacingMode('end');
       return;
@@ -79,7 +81,7 @@ export default function App() {
 
     // Place END
     if (placingMode === 'end') {
-      setEndNodeId(String(nearest.id));
+      setEndNode(nearest);
       mapRef.current?.placeEndMarker(nearest.lat, nearest.lon, 'Hospital');
       setPlacingMode('done');
     }
@@ -88,10 +90,10 @@ export default function App() {
   // ── Run all algorithms ────────────────────────────────────
   const handleRun = useCallback(() => {
     mapRef.current?.clearPaths();
-    runAll(startNodeId, endNodeId, (algo, path) => {
+    runAll(startNode, endNode, (algo, path) => {
       mapRef.current?.drawPath(algo, path, graphNodes);
     });
-  }, [runAll, startNodeId, endNodeId, graphNodes]);
+  }, [runAll, startNode, endNode, graphNodes]);
 
   // ── Clear paths ───────────────────────────────────────────
   const handleClear = useCallback(() => {
@@ -106,8 +108,8 @@ export default function App() {
     mapRef.current?.clearObstacleMarkers();
     resetAlgo();
     resetObstacles();
-    setStartNodeId(null);
-    setEndNodeId(null);
+    setStartNode(null);
+    setEndNode(null);
     setPlacingMode('start');
   }, [resetAlgo, resetObstacles]);
 
