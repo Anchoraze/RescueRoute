@@ -48,31 +48,43 @@ export default function App() {
   const handleNodeClick = useCallback((lat, lon) => {
     if (loadState !== 'loaded') return;
 
-    const nearest = snapToNearest(lat, lon,
-      (placingMode === 'end') ? 'end' : 'start'
-    );
-    if (!nearest) return;
+    const isObstacleTool = activeTool === 'block' || activeTool === 'flood' || activeTool === 'fire';
 
-    // Obstacle tools
-    if (activeTool === 'block' || activeTool === 'flood' || activeTool === 'fire') {
-      const id = String(nearest.id);
+    if (isObstacleTool) {
+      // Obstacles always snap to the nearest REAL graph node — no virtual node
+      // needed since obstacles are stored by node id, not injected into the graph.
+      const nearest = snapToNearest(lat, lon, 'start'); // role doesn't matter; real node resolved below
+      if (!nearest) return;
+
+      // If snap returned a virtual node (mid-edge), resolve to the closer endpoint.
+      const realNode = nearest.isVirtual
+        ? (() => {
+            const { na, nb } = nearest.hostEdge;
+            const dA = (lat - na.lat) ** 2 + (lon - na.lon) ** 2;
+            const dB = (lat - nb.lat) ** 2 + (lon - nb.lon) ** 2;
+            return dA <= dB ? na : nb;
+          })()
+        : nearest;
+
+      const id = String(realNode.id);
       const isSet =
         (activeTool === 'block' && blockedNodes.has(id)) ||
         (activeTool === 'flood' && floodNodes.has(id)) ||
         (activeTool === 'fire'  && fireNodes.has(id));
 
-      toggleObstacle(nearest.id, activeTool);
-
+      toggleObstacle(realNode.id, activeTool);
       if (isSet) {
         mapRef.current?.removeObstacleMarker(id);
       } else {
-        mapRef.current?.addObstacleMarker(id, nearest.lat, nearest.lon, activeTool);
+        mapRef.current?.addObstacleMarker(id, realNode.lat, realNode.lon, activeTool);
       }
       return;
     }
 
-    // Place START
+    // Place START — snap to exact projected position (virtual node ok)
     if (placingMode === 'start' || (placingMode === 'done' && activeTool === 'none')) {
+      const nearest = snapToNearest(lat, lon, 'start');
+      if (!nearest) return;
       setStartNode(nearest);
       mapRef.current?.placeStartMarker(nearest.lat, nearest.lon, 'Rescue Team');
       setPlacingMode('end');
@@ -81,6 +93,8 @@ export default function App() {
 
     // Place END
     if (placingMode === 'end') {
+      const nearest = snapToNearest(lat, lon, 'end');
+      if (!nearest) return;
       setEndNode(nearest);
       mapRef.current?.placeEndMarker(nearest.lat, nearest.lon, 'Hospital');
       setPlacingMode('done');
