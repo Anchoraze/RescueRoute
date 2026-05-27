@@ -22,7 +22,7 @@ const ALGO_STYLE = {
  *   mapRef.current.clearObstacleMarkers()
  */
 const MapCanvas = forwardRef(function MapCanvas(
-  { graphNodes, snapToNearest, onNodeClick, placingMode, nodeCount, edgeCount, loadState,highlightedAlgo },
+  { graphNodes, snapToNearest, onNodeClick, placingMode, nodeCount, edgeCount, loadState,highlightedAlgo, isMobile },
   ref
 ) {
   const mapRef          = useRef(null);
@@ -241,23 +241,24 @@ useEffect(() => {
 
       {/* HUD top-center */}
       <div style={{
-        position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: isMobile ? 4 : 8, left: '50%', transform: 'translateX(-50%)',
         background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: 4, padding: '3px 10px',
-        color: '#4ade80', fontSize: 10, fontFamily: 'Share Tech Mono',
+        borderRadius: 4, padding: isMobile ? '2px 6px' : '3px 10px',
+        color: '#4ade80', fontSize: isMobile ? 8 : 10, fontFamily: 'Share Tech Mono',
         zIndex: 600, pointerEvents: 'none', letterSpacing: '0.1em',
-        whiteSpace: 'nowrap',
+        whiteSpace: isMobile ? 'normal' : 'nowrap',
       }}>
         {hudText}
       </div>
 
       {/* Mode hint bottom-left */}
       <div style={{
-        position: 'absolute', bottom: 12, left: 12,
+        position: 'absolute', bottom: isMobile ? 8 : 12, left: isMobile ? 8 : 12,
         background: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.12)',
-        borderRadius: 6, padding: '6px 12px',
-        color: '#94a3b8', fontSize: 11, fontFamily: 'Share Tech Mono',
+        borderRadius: 6, padding: isMobile ? '4px 8px' : '6px 12px',
+        color: '#94a3b8', fontSize: isMobile ? 9 : 11, fontFamily: 'Share Tech Mono',
         zIndex: 600, letterSpacing: '0.08em',
+        maxWidth: isMobile ? '60vw' : 'none',
       }}>
         <span style={{ color: '#facc15', fontWeight: 700 }}>Mode: </span>{modeText}
       </div>

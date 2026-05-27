@@ -28,6 +28,18 @@ export default function App() {
   const [endNode, setEndNode]     = useState(null);
   const [placingMode, setPlacingMode] = useState('loading'); // loading|error|start|end|done
   const [highlightedAlgo, setHighlightedAlgo] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isSmall, setIsSmall] = useState(window.innerWidth <= 480);
+  const [showMobilePanel, setShowMobilePanel] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsSmall(window.innerWidth <= 480);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   // ── Clock ─────────────────────────────────────────────────
   const [time, setTime] = useState(new Date());
   useEffect(() => {
@@ -118,7 +130,7 @@ export default function App() {
     setPlacingMode('start');
   }, [resetAlgo, resetObstacles]);
 
-  return (
+  return (<>
     <div style={{
       width: '100vw', height: '100vh',
       background: '#060a14',
@@ -129,38 +141,52 @@ export default function App() {
       <header style={{
         background: 'rgba(6,10,20,0.98)',
         borderBottom: '1px solid rgba(239,68,68,0.3)',
-        padding: '0 16px', height: 44,
-        display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0,
+        padding: isMobile ? '0 8px' : '0 16px',
+        height: isMobile ? 38 : 44,
+        display: 'flex', alignItems: 'center',
+        gap: isMobile ? 6 : 12, flexShrink: 0,
         boxShadow: '0 1px 20px rgba(239,68,68,0.1)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 8 }}>
           <div style={{
-            width: 28, height: 28,
+            width: isMobile ? 22 : 28, height: isMobile ? 22 : 28,
             background: 'linear-gradient(135deg,#dc2626,#7f1d1d)',
             borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, boxShadow: '0 0 12px rgba(220,38,38,0.5)',
+            fontSize: isMobile ? 11 : 14,
+            boxShadow: '0 0 12px rgba(220,38,38,0.5)',
           }}>🚨</div>
           <div>
-            <div style={{ color: '#f1f5f9', fontSize: 16, fontFamily: 'Exo 2', fontWeight: 800, letterSpacing: '0.05em', lineHeight: 1 }}>
+            <div style={{
+              color: '#f1f5f9',
+              fontSize: isMobile ? (isSmall ? 12 : 14) : 16,
+              fontFamily: 'Exo 2', fontWeight: 800,
+              letterSpacing: '0.05em', lineHeight: 1,
+            }}>
               RESCUE<span style={{ color: '#ef4444' }}>ROUTE</span>
             </div>
-            <div style={{ color: '#475569', fontSize: 8, fontFamily: 'Share Tech Mono', letterSpacing: '0.2em' }}>
-              DISASTER PATHFINDING SYSTEM
-            </div>
+            {!isSmall && (
+              <div style={{ color: '#475569', fontSize: 8, fontFamily: 'Share Tech Mono', letterSpacing: '0.2em' }}>
+                DISASTER PATHFINDING SYSTEM
+              </div>
+            )}
           </div>
         </div>
 
-        <StatusBadge color="#ef4444" label="EMERGENCY ACTIVE" pulse />
-        <StatusBadge color="#f59e0b" label="4 ALGORITHMS READY" />
+        {!isSmall && <StatusBadge color="#ef4444" label="EMERGENCY ACTIVE" pulse />}
+        {!isMobile && <StatusBadge color="#f59e0b" label="4 ALGORITHMS READY" />}
         <StatusBadge color="#22d3ee" label={loadState === 'loaded' ? 'OSM LIVE' : loadState === 'loading' ? 'LOADING…' : 'OSM ERROR'} />
 
         <div style={{ flex: 1 }} />
-        <div style={{ color: '#22d3ee', fontSize: 13, fontFamily: 'Share Tech Mono', letterSpacing: '0.1em' }}>
-          {time.toLocaleTimeString('en-IN', { hour12: false })}
-        </div>
-        <div style={{ color: '#475569', fontSize: 10, fontFamily: 'Share Tech Mono' }}>
-          DIJKSTRA · A* · BFS · BELLMAN-FORD
-        </div>
+        {!isMobile && (
+          <>
+            <div style={{ color: '#22d3ee', fontSize: 13, fontFamily: 'Share Tech Mono', letterSpacing: '0.1em' }}>
+              {time.toLocaleTimeString('en-IN', { hour12: false })}
+            </div>
+            <div style={{ color: '#475569', fontSize: 10, fontFamily: 'Share Tech Mono' }}>
+              DIJKSTRA · A* · BFS · BELLMAN-FORD
+            </div>
+          </>
+        )}
       </header>
 
       {/* ── Main ── */}
@@ -176,6 +202,7 @@ export default function App() {
             edgeCount={edgeCount}
             loadState={loadState}
             highlightedAlgo={highlightedAlgo}
+            isMobile={isMobile}
           />
           <ComplexityPanel results={results} ALGORITHMS={ALGORITHMS} />
           <ScenarioToolbar
@@ -190,15 +217,16 @@ export default function App() {
           />
         </div>
 
-        <AlgoRacePanel
-          ALGORITHMS={ALGORITHMS}
-          results={results}
-          animationProgress={animationProgress}
-          isRunning={isRunning}
-
-          highlightedAlgo={highlightedAlgo}
-          setHighlightedAlgo={setHighlightedAlgo}
-        />
+        {!isMobile && (
+          <AlgoRacePanel
+            ALGORITHMS={ALGORITHMS}
+            results={results}
+            animationProgress={animationProgress}
+            isRunning={isRunning}
+            highlightedAlgo={highlightedAlgo}
+            setHighlightedAlgo={setHighlightedAlgo}
+          />
+        )}
       </div>
 
       <style>{`
@@ -214,7 +242,119 @@ export default function App() {
           color:#94a3b8!important;
           border-color:rgba(255,255,255,0.1)!important;
         }
+        @media (max-width: 768px) {
+          .leaflet-control-zoom a { width:28px!important; height:28px!important; line-height:28px!important; font-size:14px!important; }
+          .leaflet-control-attribution { font-size:8px!important; }
+        }
+        @media (max-width: 480px) {
+          .leaflet-control-zoom { display:none; }
+        }
       `}</style>
+    </div>
+
+    {/* Mobile overlay + FAB (outside root div to avoid overflow clipping) */}
+    {isMobile && showMobilePanel && (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 999,
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)',
+        display: 'flex', justifyContent: 'flex-end',
+      }} onClick={() => setShowMobilePanel(false)}>
+        <div style={{
+          width: 'min(320px, 85vw)', height: '100%',
+          background: 'rgba(8,12,22,0.98)',
+          borderLeft: '1px solid rgba(255,255,255,0.07)',
+          overflowY: 'auto',
+        }} onClick={e => e.stopPropagation()}>
+          <div style={{
+            display: 'flex', justifyContent: 'flex-end',
+            padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)',
+          }}>
+            <button onClick={() => setShowMobilePanel(false)} style={{
+              background: 'rgba(255,255,255,0.08)', border: 'none',
+              color: '#94a3b8', borderRadius: 4, padding: '4px 10px',
+              cursor: 'pointer', fontSize: 14, fontFamily: 'Rajdhani', fontWeight: 600,
+            }}>✕ Close</button>
+          </div>
+          <AlgoRacePanel
+            ALGORITHMS={ALGORITHMS}
+            results={results}
+            animationProgress={animationProgress}
+            isRunning={isRunning}
+            highlightedAlgo={highlightedAlgo}
+            setHighlightedAlgo={setHighlightedAlgo}
+          />
+        </div>
+      </div>
+    )}
+
+    {isMobile && (
+      <DraggableFAB
+        onToggle={() => setShowMobilePanel(p => !p)}
+        showPanel={showMobilePanel}
+      />
+    )}
+  </>
+  );
+}
+
+function DraggableFAB({ onToggle, showPanel }) {
+  const [pos, setPos] = useState(() => ({
+    x: window.innerWidth - 56,
+    y: window.innerHeight - 100,
+  }));
+  const posRef = useRef(pos);
+  const dragging = useRef(false);
+  const dragStart = useRef(null);
+  const posAtStart = useRef(null);
+
+  useEffect(() => { posRef.current = pos; }, [pos]);
+
+  const onPointerDown = useCallback((e) => {
+    e.preventDefault();
+    e.target.setPointerCapture(e.pointerId);
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    posAtStart.current = { ...posRef.current };
+    dragging.current = false;
+  }, []);
+
+  const onPointerMove = useCallback((e) => {
+    if (!dragStart.current) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragging.current = true;
+    const newPos = {
+      x: Math.max(0, Math.min(window.innerWidth - 44, posAtStart.current.x + dx)),
+      y: Math.max(0, Math.min(window.innerHeight - 44, posAtStart.current.y + dy)),
+    };
+    posRef.current = newPos;
+    setPos(newPos);
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    if (!dragging.current) onToggle();
+    dragStart.current = null;
+  }, [onToggle]);
+
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      style={{
+        position: 'fixed',
+        left: pos.x, top: pos.y,
+        zIndex: 800,
+        width: 44, height: 44, borderRadius: '50%',
+        background: 'linear-gradient(135deg,#dc2626,#ef4444)',
+        color: '#fff', fontSize: 18,
+        cursor: 'grab',
+        boxShadow: '0 2px 16px rgba(220,38,38,0.5)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        userSelect: 'none', touchAction: 'none',
+      }}
+      title={showPanel ? 'Close results panel' : 'Open results panel'}
+    >
+      📊
     </div>
   );
 }
