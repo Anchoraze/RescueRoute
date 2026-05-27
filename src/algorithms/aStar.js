@@ -3,43 +3,47 @@
  * Time:  O(E log V)
  * Space: O(V)
  *
- * FIX: replaced linear scan of openSet (O(n) per step) with a MinHeap (O(log n)).
- * gScore is now a plain Map for O(1) lookup instead of iterating the openSet.
+ * Uses real haversine distance as the admissible heuristic.
+ * heuristic(aId, bId) is injected from useAlgorithm so it has
+ * access to graphNodes coordinates without importing them here.
  */
-import { MinHeap } from './minHeap';
-
 export function aStar(adj, startId, endId, getEffectiveWeight, heuristic) {
-  const gScore  = new Map();
+  startId = String(startId);
+  endId = String(endId);
+  const gScore  = {};
   const parent  = {};
   const visited = [];
+  const openSet = new Map();
   const closed  = new Set();
 
-  for (const id in adj) { gScore.set(id, Infinity); parent[id] = null; }
-  gScore.set(startId, 0);
+  for (const id in adj) { gScore[id] = Infinity; parent[id] = null; }
+  gScore[startId] = 0;
+  openSet.set(startId, { g: 0, f: heuristic(startId, endId) });
 
-  const pq = new MinHeap();
-  pq.push(heuristic(startId, endId), startId);
+  while (openSet.size > 0) {
+    // Pick node with lowest f score
+    let cur = null, best = Infinity;
+    for (const [id, v] of openSet) {
+      if (v.f < best) { best = v.f; cur = id; }
+    }
+    if (!cur) break;
 
-  while (pq.size > 0) {
-    const { value: cur } = pq.pop();
-
-    if (closed.has(cur)) continue;
+    const { g } = openSet.get(cur);
+    openSet.delete(cur);
     closed.add(cur);
     visited.push(cur);
 
     if (cur === endId) break;
-
-    const g = gScore.get(cur) ?? Infinity;
 
     for (const nb of (adj[cur] || [])) {
       if (closed.has(nb.id)) continue;
       const w = getEffectiveWeight(nb.id, nb.weight);
       if (w === Infinity) continue;
       const ng = g + w;
-      if (ng < (gScore.get(nb.id) ?? Infinity)) {
+      if (!openSet.has(nb.id) || ng < openSet.get(nb.id).g) {
         parent[nb.id] = cur;
-        gScore.set(nb.id, ng);
-        pq.push(ng + heuristic(nb.id, endId), nb.id);
+        gScore[nb.id] = ng;
+        openSet.set(nb.id, { g: ng, f: ng + heuristic(nb.id, endId) });
       }
     }
   }
@@ -47,20 +51,19 @@ export function aStar(adj, startId, endId, getEffectiveWeight, heuristic) {
   return {
     visited,
     path: reconstructPath(parent, startId, endId),
-    cost: gScore.get(endId) ?? Infinity,
+    cost: gScore[endId] ?? Infinity,
   };
 }
 
 function reconstructPath(parent, startId, endId) {
-  if (parent[endId] === undefined && endId !== startId) return [];
   const path = [];
   let cur = endId;
-  const seen = new Set();
-  while (cur !== null && cur !== undefined) {
-    if (seen.has(cur)) break;
-    seen.add(cur);
+  while (cur !== null) {
     path.unshift(cur);
+    if (cur === startId) {
+      return path;
+    }
     cur = parent[cur];
   }
-  return path[0] === startId ? path : [];
+  return [];
 }
