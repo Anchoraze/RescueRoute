@@ -191,6 +191,8 @@ useEffect(() => {
         if (obstacleMarkers.current[nodeId]) {
           mapInstanceRef.current.removeLayer(obstacleMarkers.current[nodeId]);
         }
+
+        
         const m = L.circleMarker([lat, lon], {
           radius: 6, color: colors[tool] || '#fff',
           fillColor: colors[tool] || '#fff', fillOpacity: 0.8, weight: 1,
@@ -229,7 +231,7 @@ useEffect(() => {
   }[placingMode] || '';
 
   return (
-    <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
       {/* Leaflet map */}
       <div ref={mapRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
 

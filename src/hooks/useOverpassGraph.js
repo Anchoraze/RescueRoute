@@ -134,7 +134,7 @@ const MIRRORS = [
 // Reduced bbox: central Kolkata only (~40% less data → much faster on slow nets)
 // Old: 22.50,88.30,22.65,88.43  →  ~160k nodes
 // New: 22.53,88.33,22.60,88.40  →  ~60-80k nodes, still covers the demo area
-const BBOX = '22.53,88.33,22.60,88.40';
+const BBOX = '22.53,88.33,22.60,88.88';
 
 // Cache key in sessionStorage so a page refresh doesn't re-fetch
 const CACHE_KEY = 'rescueroute_osm_v2';
@@ -353,6 +353,9 @@ export function useOverpassGraph() {
     return best && bestD <= MAX_DIST_M ? best : null;
   }, [nodeList]);
 
+
+
+  
   return {
     graphNodes, graphAdj, nodeList,
     loadState, errorMsg, statusMsg, nodeCount, edgeCount,
