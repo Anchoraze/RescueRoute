@@ -145,7 +145,9 @@ export default function ScenarioToolbar({
     <div style={{
       ...baseStyle,
       padding: '8px 14px',
-      display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+      display: 'flex', alignItems: 'center', gap: '10px',
+      flexWrap: 'nowrap', overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch',
     }}>
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
