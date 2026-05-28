@@ -126,7 +126,7 @@ export default function App() {
 
   return (<>
     <div style={{
-      width: '100vw', height: '100dvh',
+      width: '100vw', height: '100vh',
       background: 'linear-gradient(170deg, #020508 0%, #04080f 40%, #060c18 100%)',
       display: 'flex', flexDirection: 'column',
       overflow: 'hidden', fontFamily: '"Exo 2", sans-serif',
@@ -342,7 +342,7 @@ export default function App() {
         @keyframes slideIn { from { opacity:0; transform: translateX(24px); } to { opacity:1; transform: translateX(0); } }
         @keyframes glow-pulse { 0%,100%{box-shadow:0 0 12px rgba(239,68,68,0.4)} 50%{box-shadow:0 0 28px rgba(239,68,68,0.8)} }
         * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; height: 100dvh; }
+        body { margin: 0; overflow: hidden; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(239,68,68,0.25); border-radius: 2px; }
@@ -420,6 +420,9 @@ export default function App() {
             isRunning={isRunning}
             highlightedAlgo={highlightedAlgo}
             setHighlightedAlgo={setHighlightedAlgo}
+            activeTool={activeTool}
+            setActiveTool={setActiveTool}
+            isMobile={isMobile}
           />
         </div>
       </div>
