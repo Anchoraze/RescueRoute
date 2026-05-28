@@ -17,7 +17,7 @@ export default function ScenarioToolbar({
   onReset, onRun, onClear, onRetry,
   isRunning, loadState, isMobile,
 }) {
-  const baseStyle = {
+  const sharedWrapperStyle = {
     background: 'rgba(3,6,14,0.88)',
     backdropFilter: 'blur(20px) saturate(1.5)',
     WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
@@ -26,24 +26,23 @@ export default function ScenarioToolbar({
       'inset 0 1px 0 rgba(255,255,255,0.03),' +
       'inset 0 -1px 0 rgba(0,0,0,0.5),' +
       '0 -1px 20px rgba(0,0,0,0.3)',
-    position: 'relative', overflow: 'hidden',
+    position: 'relative',
+    // NOTE: NO overflow:hidden here — it kills scroll on mobile
   };
 
   if (isMobile) {
     return (
-      <div style={{ ...baseStyle, display: 'flex', flexDirection: 'column' }}>
-        {/* Top line gradient */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent)',
-          pointerEvents: 'none',
-        }} />
+      <div style={{ ...sharedWrapperStyle, display: 'flex', flexDirection: 'column' }}>
 
-        {/* Row 1: tool buttons */}
+        {/* Row 1: obstacle tools — horizontally scrollable */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5,
+          display: 'flex', alignItems: 'center', gap: 6,
           padding: '7px 10px 5px',
-          overflowX: 'auto', flexShrink: 0,
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          flexWrap: 'nowrap',
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
         }}>
           <span style={{
             color: '#1e3a4a', fontSize: 8,
@@ -57,8 +56,8 @@ export default function ScenarioToolbar({
               <button
                 key={t.id}
                 onClick={() => setActiveTool(t.id)}
-                title={t.title}
                 style={{
+                  flexShrink: 0,
                   background: isActive
                     ? `linear-gradient(135deg, ${tc.active}, rgba(0,0,0,0.2))`
                     : 'rgba(255,255,255,0.025)',
@@ -71,10 +70,10 @@ export default function ScenarioToolbar({
                   fontFamily: '"Exo 2", sans-serif',
                   fontWeight: 600,
                   display: 'flex', alignItems: 'center', gap: 4,
-                  whiteSpace: 'nowrap', flexShrink: 0,
+                  whiteSpace: 'nowrap',
                   boxShadow: isActive
                     ? `0 0 16px ${tc.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`
-                    : 'inset 0 1px 0 rgba(255,255,255,0.02)',
+                    : 'none',
                 }}
               >
                 <span style={{ fontSize: 12 }}>{t.emoji}</span>
@@ -84,25 +83,16 @@ export default function ScenarioToolbar({
           })}
         </div>
 
-        {/* Row 2: action buttons + big Find Routes */}
+        {/* Row 2: Clear + Reset + Find Routes */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
           padding: '5px 10px 8px',
         }}>
-          {loadState === 'error' && (
-            <button onClick={onRetry} style={{
-              background: 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05))',
-              border: '1px solid rgba(239,68,68,0.28)',
-              borderRadius: 8, color: '#fca5a5', cursor: 'pointer',
-              padding: '6px 10px', fontSize: 10,
-              fontFamily: '"Exo 2", sans-serif', fontWeight: 600,
-              flexShrink: 0,
-            }}>↺ Retry</button>
-          )}
           <GhostButton onClick={onClear} disabled={isRunning} label="Clear" />
           <GhostButton onClick={onReset} disabled={isRunning} label="Reset" />
-
-          {/* Find Routes — full width remaining */}
+          {loadState === 'error' && (
+            <GhostButton onClick={onRetry} disabled={false} label="↺ Retry" />
+          )}
           <button
             onClick={onRun}
             disabled={isRunning || loadState !== 'loaded'}
@@ -130,7 +120,6 @@ export default function ScenarioToolbar({
                 ? '0 0 24px rgba(220,38,38,0.45), 0 0 48px rgba(220,38,38,0.18)'
                 : 'none',
               opacity: (isRunning || loadState !== 'loaded') ? 0.55 : 1,
-              position: 'relative', overflow: 'hidden',
             }}
           >
             {isRunning ? '⏳ RUNNING…' : '🚨 FIND ROUTES'}
@@ -140,14 +129,13 @@ export default function ScenarioToolbar({
     );
   }
 
-  // ── Desktop layout (unchanged) ────────────────────────────
+  // ── Desktop ───────────────────────────────────────────────
   return (
     <div style={{
-      ...baseStyle,
+      ...sharedWrapperStyle,
       padding: '8px 14px',
-      display: 'flex', alignItems: 'center', gap: '10px',
-      flexWrap: 'nowrap', overflowX: 'auto',
-      WebkitOverflowScrolling: 'touch',
+      display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+      overflow: 'hidden',
     }}>
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
@@ -178,14 +166,11 @@ export default function ScenarioToolbar({
                 borderRadius: 8,
                 color: isActive ? tc.text : '#334155',
                 cursor: 'pointer',
-                padding: '5px 11px',
-                fontSize: 11,
-                fontFamily: '"Exo 2", sans-serif',
-                fontWeight: 600,
+                padding: '5px 11px', fontSize: 11,
+                fontFamily: '"Exo 2", sans-serif', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 5,
                 transition: 'all 0.15s cubic-bezier(0.16,1,0.3,1)',
-                letterSpacing: '0.04em',
-                backdropFilter: 'blur(8px)',
+                letterSpacing: '0.04em', backdropFilter: 'blur(8px)',
                 boxShadow: isActive
                   ? `0 0 16px ${tc.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`
                   : 'inset 0 1px 0 rgba(255,255,255,0.02)',
@@ -209,10 +194,8 @@ export default function ScenarioToolbar({
             letterSpacing: '0.04em', backdropFilter: 'blur(8px)',
           }}>↺ Retry Load</button>
         )}
-
         <GhostButton onClick={onClear} disabled={isRunning} label="Clear Paths" />
         <GhostButton onClick={onReset} disabled={isRunning} label="Reset Map" />
-
         <button
           onClick={onRun}
           disabled={isRunning || loadState !== 'loaded'}
@@ -230,14 +213,11 @@ export default function ScenarioToolbar({
             borderRadius: 8,
             color: loadState !== 'loaded' ? '#1e293b' : '#fff',
             cursor: (isRunning || loadState !== 'loaded') ? 'not-allowed' : 'pointer',
-            padding: '6px 20px',
-            fontSize: 12,
-            fontFamily: '"Exo 2", sans-serif',
-            fontWeight: 800,
-            letterSpacing: '0.1em',
-            backdropFilter: 'blur(8px)',
+            padding: '6px 20px', fontSize: 12,
+            fontFamily: '"Exo 2", sans-serif', fontWeight: 800,
+            letterSpacing: '0.1em', backdropFilter: 'blur(8px)',
             boxShadow: (!isRunning && loadState === 'loaded')
-              ? '0 0 24px rgba(220,38,38,0.45), 0 0 48px rgba(220,38,38,0.18), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.2)'
+              ? '0 0 24px rgba(220,38,38,0.45), 0 0 48px rgba(220,38,38,0.18), inset 0 1px 0 rgba(255,255,255,0.2)'
               : 'none',
             transition: 'all 0.2s cubic-bezier(0.16,1,0.3,1)',
             opacity: (isRunning || loadState !== 'loaded') ? 0.55 : 1,
