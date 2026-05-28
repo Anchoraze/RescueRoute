@@ -1,4 +1,5 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { COVERAGE_BOUNDS } from '../hooks/useOverpassGraph';
 
 const ALGO_STYLE = {
   dijkstra:   { color: '#22d3ee', weight: 5, opacity: 0.9, dashArray: null },
@@ -90,7 +91,37 @@ useEffect(() => {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }).addTo(map);
+      
+// ── Coverage haze — donut polygon (world minus covered bbox) ──
+      const world = [[-90, -180], [-90, 180], [90, 180], [90, -180], [-90, -180]];
+      const hole  = [
+        [COVERAGE_BOUNDS.minLat, COVERAGE_BOUNDS.minLon],
+        [COVERAGE_BOUNDS.minLat, COVERAGE_BOUNDS.maxLon],
+        [COVERAGE_BOUNDS.maxLat, COVERAGE_BOUNDS.maxLon],
+        [COVERAGE_BOUNDS.maxLat, COVERAGE_BOUNDS.minLon],
+        [COVERAGE_BOUNDS.minLat, COVERAGE_BOUNDS.minLon],
+      ];
 
+      L.polygon([world, hole], {
+        color: 'transparent',
+        fillColor: '#000',
+        fillOpacity: 0.55,
+        interactive: false,
+      }).addTo(map);
+
+      // Cyan dashed border around the covered area
+      L.rectangle(
+        [[COVERAGE_BOUNDS.minLat, COVERAGE_BOUNDS.minLon],
+         [COVERAGE_BOUNDS.maxLat, COVERAGE_BOUNDS.maxLon]],
+        {
+          color: '#22d3ee',
+          weight: 1.5,
+          opacity: 0.5,
+          fill: false,
+          dashArray: '6 5',
+          interactive: false,
+        }
+      ).addTo(map);
       // Use ref so we always invoke the latest handler, never a stale closure
       map.on('click', (e) => {
         onNodeClickRef.current(e.latlng.lat, e.latlng.lng);
