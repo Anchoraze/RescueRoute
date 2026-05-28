@@ -128,17 +128,19 @@ function roadWeight(highway) {
 const MIRRORS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+  'https://overpassapi.heigit.org/api/interpreter',
   'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
 ];
 
 // Reduced bbox: central Kolkata only (~40% less data → much faster on slow nets)
 // Old: 22.50,88.30,22.65,88.43  →  ~160k nodes
 // New: 22.53,88.33,22.60,88.40  →  ~60-80k nodes, still covers the demo area
-const BBOX = '22.45,88.20,22.68,88.55';
+const BBOX = '22.53,88.33,22.62,88.42';
 
 export const COVERAGE_BOUNDS = {
-  minLat: 22.45, maxLat: 22.68,
-  minLon: 88.20, maxLon: 88.55,
+  minLat: 22.53, maxLat: 22.62,
+  minLon: 88.33, maxLon: 88.42,
 };
 
 // Cache key in sessionStorage so a page refresh doesn't re-fetch
@@ -170,20 +172,29 @@ async function sleep(ms) {
 }
 
 async function fetchRoadNetwork(onStatus) {
-  // 1. Check sessionStorage cache first
+  // 1. Try bundled static cache first
+  try {
+    const res = await fetch('/osm-cache.json');
+    if (res.ok) {
+      onStatus('Loading map data…');
+      return res.json();
+    }
+  } catch (_) {}
+
+  // 2. Check sessionStorage cache
   try {
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (cached) {
       onStatus('Using cached map data…');
       return JSON.parse(cached);
     }
-  } catch (_) { /* sessionStorage unavailable — fine */ }
+  } catch (_) {}
 
   const query = buildQuery(BBOX);
   const errors = [];
 
   for (const mirror of MIRRORS) {
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         onStatus(
           attempt === 1
@@ -191,33 +202,29 @@ async function fetchRoadNetwork(onStatus) {
             : `Retrying ${new URL(mirror).hostname}…`
         );
 
-        // Per-attempt timeout: 45 s
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 45_000);
+        const timer = setTimeout(() => controller.abort(), 60_000);
 
         const data = await fetchFromMirror(mirror, query, controller.signal);
         clearTimeout(timer);
 
         if (!data?.elements?.length) throw new Error('Empty response');
 
-        // Cache on success
         try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (_) {}
 
         return data;
       } catch (err) {
         errors.push(`${mirror} attempt ${attempt}: ${err.message}`);
-        if (attempt < 2) await sleep(1000 * attempt); // 1 s, then 2 s back-off
+        if (attempt < 2) await sleep(1000 * attempt);
       }
     }
 
-    // All attempts on this mirror exhausted — try next
     if (MIRRORS.indexOf(mirror) < MIRRORS.length - 1) {
       onStatus('Trying alternate server…');
       await sleep(500);
     }
   }
 
-  // All mirrors failed
   throw new Error(
     `All Overpass mirrors failed.\n\nDetails:\n${errors.join('\n')}\n\n` +
     'Possible causes: rate-limited (try again in 60 s), ad blocker, or no internet.'
