@@ -182,14 +182,30 @@ function bellmanFord(adj, startId, endId, getW) {
   for (const id in adj) { dist[id] = Infinity; parent[id] = null; }
   dist[startId] = 0;
 
-  const allEdges = [];
-  for (const u in adj) {
+  // Only include edges reachable from startId within a budget
+  const reachable = new Set();
+  const queue = [startId];
+  const NODE_BUDGET = 8000;
+  while (queue.length > 0 && reachable.size < NODE_BUDGET) {
+    const u = queue.shift();
+    if (reachable.has(u)) continue;
+    reachable.add(u);
     for (const nb of (adj[u] || [])) {
-      allEdges.push({ u, v: nb.id, baseWeight: nb.weight });
+      if (!reachable.has(nb.id)) queue.push(nb.id);
+    }
+  }
+  // Always include endId's neighbors
+  reachable.add(endId);
+
+  const allEdges = [];
+  for (const u of reachable) {
+    for (const nb of (adj[u] || [])) {
+      if (reachable.has(nb.id))
+        allEdges.push({ u, v: nb.id, baseWeight: nb.weight });
     }
   }
 
-  const maxIter = Math.min(Object.keys(adj).length - 1, 200);
+  const maxIter = Math.min(reachable.size - 1, 50);
 
   for (let i = 0; i < maxIter; i++) {
     let updated = false;
