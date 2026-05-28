@@ -32,99 +32,47 @@ export default function ScenarioToolbar({
 
   if (isMobile) {
     return (
-      <div style={{ ...sharedWrapperStyle, display: 'flex', flexDirection: 'column' }}>
-
-        {/* Row 1: obstacle tools — horizontally scrollable */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '7px 10px 5px',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
-          flexWrap: 'nowrap',
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-        }}>
-          <span style={{
-            color: '#1e3a4a', fontSize: 8,
-            fontFamily: '"Share Tech Mono", monospace',
-            letterSpacing: '0.18em', whiteSpace: 'nowrap', flexShrink: 0,
-          }}>OBSTACLES</span>
-          {TOOLS.map(t => {
-            const isActive = activeTool === t.id;
-            const tc = TOOL_COLORS[t.id];
-            return (
-              <button
-                key={t.id}
-                onClick={() => setActiveTool(t.id)}
-                style={{
-                  flexShrink: 0,
-                  background: isActive
-                    ? `linear-gradient(135deg, ${tc.active}, rgba(0,0,0,0.2))`
-                    : 'rgba(255,255,255,0.025)',
-                  border: `1px solid ${isActive ? tc.border : 'rgba(255,255,255,0.06)'}`,
-                  borderRadius: 8,
-                  color: isActive ? tc.text : '#334155',
-                  cursor: 'pointer',
-                  padding: '5px 9px',
-                  fontSize: 11,
-                  fontFamily: '"Exo 2", sans-serif',
-                  fontWeight: 600,
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  whiteSpace: 'nowrap',
-                  boxShadow: isActive
-                    ? `0 0 16px ${tc.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`
-                    : 'none',
-                }}
-              >
-                <span style={{ fontSize: 12 }}>{t.emoji}</span>
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Row 2: Clear + Reset + Find Routes */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '5px 10px 8px',
-        }}>
-          <GhostButton onClick={onClear} disabled={isRunning} label="Clear" />
-          <GhostButton onClick={onReset} disabled={isRunning} label="Reset" />
-          {loadState === 'error' && (
-            <GhostButton onClick={onRetry} disabled={false} label="↺ Retry" />
-          )}
-          <button
-            onClick={onRun}
-            disabled={isRunning || loadState !== 'loaded'}
-            style={{
-              flex: 1,
-              background: isRunning
-                ? 'rgba(34,197,94,0.08)'
-                : loadState !== 'loaded'
-                ? 'rgba(255,255,255,0.03)'
-                : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 40%, #f97316 100%)',
-              border: isRunning
-                ? '1px solid rgba(34,197,94,0.25)'
-                : loadState !== 'loaded'
-                ? '1px solid rgba(255,255,255,0.08)'
-                : '1px solid rgba(220,38,38,0.4)',
-              borderRadius: 8,
-              color: loadState !== 'loaded' ? '#1e293b' : '#fff',
-              cursor: (isRunning || loadState !== 'loaded') ? 'not-allowed' : 'pointer',
-              padding: '8px 12px',
-              fontSize: 13,
-              fontFamily: '"Exo 2", sans-serif',
-              fontWeight: 800,
-              letterSpacing: '0.08em',
-              boxShadow: (!isRunning && loadState === 'loaded')
-                ? '0 0 24px rgba(220,38,38,0.45), 0 0 48px rgba(220,38,38,0.18)'
-                : 'none',
-              opacity: (isRunning || loadState !== 'loaded') ? 0.55 : 1,
-            }}
-          >
-            {isRunning ? '⏳ RUNNING…' : '🚨 FIND ROUTES'}
-          </button>
-        </div>
+      <div style={{
+        ...sharedWrapperStyle,
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '7px 10px',
+      }}>
+        <GhostButton onClick={onClear} disabled={isRunning} label="Clear" />
+        <GhostButton onClick={onReset} disabled={isRunning} label="Reset" />
+        {loadState === 'error' && (
+          <GhostButton onClick={onRetry} disabled={false} label="↺ Retry" />
+        )}
+        <button
+          onClick={onRun}
+          disabled={isRunning || loadState !== 'loaded'}
+          style={{
+            flex: 1,
+            background: isRunning
+              ? 'rgba(34,197,94,0.08)'
+              : loadState !== 'loaded'
+              ? 'rgba(255,255,255,0.03)'
+              : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 40%, #f97316 100%)',
+            border: isRunning
+              ? '1px solid rgba(34,197,94,0.25)'
+              : loadState !== 'loaded'
+              ? '1px solid rgba(255,255,255,0.08)'
+              : '1px solid rgba(220,38,38,0.4)',
+            borderRadius: 8,
+            color: loadState !== 'loaded' ? '#1e293b' : '#fff',
+            cursor: (isRunning || loadState !== 'loaded') ? 'not-allowed' : 'pointer',
+            padding: '8px 12px',
+            fontSize: 13,
+            fontFamily: '"Exo 2", sans-serif',
+            fontWeight: 800,
+            letterSpacing: '0.08em',
+            boxShadow: (!isRunning && loadState === 'loaded')
+              ? '0 0 24px rgba(220,38,38,0.45), 0 0 48px rgba(220,38,38,0.18)'
+              : 'none',
+            opacity: (isRunning || loadState !== 'loaded') ? 0.55 : 1,
+          }}
+        >
+          {isRunning ? '⏳ RUNNING…' : '🚨 FIND ROUTES'}
+        </button>
       </div>
     );
   }

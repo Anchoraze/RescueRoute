@@ -1,4 +1,18 @@
-export default function AlgoRacePanel({ ALGORITHMS, results, animationProgress, isRunning, highlightedAlgo, setHighlightedAlgo }) {
+const TOOLS = [
+  { id: 'none',  emoji: '🖱',  label: 'Navigate',  title: 'Place START / END' },
+  { id: 'block', emoji: '🧱',  label: 'Block',     title: 'Block road (impassable)' },
+  { id: 'flood', emoji: '🌊',  label: 'Flood 8×',  title: 'Flood (8× cost)' },
+  { id: 'fire',  emoji: '🔥',  label: 'Fire 12×',  title: 'Fire hazard (12× cost)' },
+];
+
+const TOOL_COLORS = {
+  none:  { active: 'rgba(34,211,238,0.14)',  border: 'rgba(34,211,238,0.5)',  text: '#22d3ee',  glow: 'rgba(34,211,238,0.28)'  },
+  block: { active: 'rgba(239,68,68,0.14)',   border: 'rgba(239,68,68,0.5)',   text: '#ef4444',  glow: 'rgba(239,68,68,0.28)'   },
+  flood: { active: 'rgba(59,130,246,0.14)',  border: 'rgba(59,130,246,0.5)',  text: '#60a5fa',  glow: 'rgba(59,130,246,0.28)'  },
+  fire:  { active: 'rgba(249,115,22,0.14)',  border: 'rgba(249,115,22,0.5)',  text: '#fb923c',  glow: 'rgba(249,115,22,0.28)'  },
+};
+
+export default function AlgoRacePanel({ ALGORITHMS, results, animationProgress, isRunning, highlightedAlgo, setHighlightedAlgo, activeTool, setActiveTool, isMobile }) {
   return (
     <div style={{
       width: '280px',
@@ -62,6 +76,63 @@ export default function AlgoRacePanel({ ALGORITHMS, results, animationProgress, 
           }}>● LIVE</span>
         )}
       </div>
+
+      {/* ── Mobile obstacle tools ── */}
+      {isMobile && setActiveTool && (
+        <div style={{
+          paddingBottom: '8px',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          marginBottom: '2px',
+        }}>
+          <span style={{
+            display: 'block',
+            color: '#1e3a4a',
+            fontSize: '8px',
+            fontFamily: '"Share Tech Mono", monospace',
+            letterSpacing: '0.2em',
+            marginBottom: '6px',
+          }}>PAINT OBSTACLES</span>
+          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+            {TOOLS.map(t => {
+              const isActive = activeTool === t.id;
+              const tc = TOOL_COLORS[t.id];
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTool(t.id)}
+                  title={t.title}
+                  style={{
+                    flex: 1,
+                    minWidth: '52px',
+                    background: isActive
+                      ? `linear-gradient(135deg, ${tc.active}, rgba(0,0,0,0.2))`
+                      : 'rgba(255,255,255,0.025)',
+                    border: `1px solid ${isActive ? tc.border : 'rgba(255,255,255,0.06)'}`,
+                    borderRadius: '8px',
+                    color: isActive ? tc.text : '#334155',
+                    cursor: 'pointer',
+                    padding: '6px 4px',
+                    fontSize: '10px',
+                    fontFamily: '"Exo 2", sans-serif',
+                    fontWeight: 600,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '2px',
+                    boxShadow: isActive
+                      ? `0 0 14px ${tc.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`
+                      : 'inset 0 1px 0 rgba(255,255,255,0.02)',
+                    transition: 'all 0.15s cubic-bezier(0.16,1,0.3,1)',
+                  }}
+                >
+                  <span style={{ fontSize: '14px' }}>{t.emoji}</span>
+                  <span style={{ letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Algorithm cards ── */}
       {ALGORITHMS.map(algo => {
