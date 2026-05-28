@@ -134,7 +134,12 @@ const MIRRORS = [
 // Reduced bbox: central Kolkata only (~40% less data → much faster on slow nets)
 // Old: 22.50,88.30,22.65,88.43  →  ~160k nodes
 // New: 22.53,88.33,22.60,88.40  →  ~60-80k nodes, still covers the demo area
-const BBOX = '22.53,88.33,22.60,88.88';
+const BBOX = '22.45,88.20,22.68,88.55';
+
+export const COVERAGE_BOUNDS = {
+  minLat: 22.45, maxLat: 22.68,
+  minLon: 88.20, maxLon: 88.55,
+};
 
 // Cache key in sessionStorage so a page refresh doesn't re-fetch
 const CACHE_KEY = 'rescueroute_osm_v2';
