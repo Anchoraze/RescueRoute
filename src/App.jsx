@@ -318,6 +318,7 @@ export default function App() {
             onRetry={forceReload}
             isRunning={isRunning}
             loadState={loadState}
+            isMobile={isMobile}
           />
         </div>
 
